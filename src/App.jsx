@@ -239,7 +239,7 @@ function Sidebar({ feed, onComment, bottomNavH }) {
   return (
     <div
       className="absolute flex flex-col items-center overflow-visible z-10"
-      style={{ bottom: bottomNavH + 28, right: 12, gap: 18 }}
+      style={{ bottom: bottomNavH + 8, right: 12, gap: 18 }}
     >
       {/* Creator avatar (top) with optional follow badge */}
       <div className="relative flex flex-col items-center justify-center pb-2">
@@ -309,7 +309,7 @@ function VideoDescription({ feed, bottomNavH }) {
   return (
     <div
       className="absolute left-3 z-10"
-      style={{ bottom: bottomNavH + 4, width: '68%' }}
+      style={{ bottom: bottomNavH, width: '68%' }}
     >
       <div className="flex flex-col gap-3">
         {/* Username + date row */}
