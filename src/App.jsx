@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import './App.css'
 
 // Status bar / Dynamic Island clearance (matches Figma design)
@@ -675,7 +675,7 @@ function CommentItem({ c, highlighted }) {
           {/* Heart like button — stop propagation so panel drag doesn't eat the tap */}
           <button
             className="flex items-center shrink-0"
-            style={{ gap: 2 }}
+            style={{ gap: 4 }}
             onPointerDown={e => e.stopPropagation()}
             onClick={toggleLike}
           >
@@ -710,6 +710,7 @@ function CommentItem({ c, highlighted }) {
 function CommentPanel({ onClose, feedIndex, highlightFirst }) {
   const feedData = FEED_COMMENTS[feedIndex] ?? FEED_COMMENTS[0]
   const [highlightId, setHighlightId] = useState(null)
+  const dragControls = useDragControls()
 
   // Flash top comment when opened via QuoteCard tap
   useEffect(() => {
@@ -729,12 +730,18 @@ function CommentPanel({ onClose, feedIndex, highlightFirst }) {
       exit={{ y: 640 }}
       transition={{ type: 'spring', damping: 30, stiffness: 300 }}
       drag="y"
+      dragControls={dragControls}
+      dragListener={false}
       dragConstraints={{ top: 0 }}
       dragElastic={0.05}
       onDragEnd={(_, info) => { if (info.offset.y > 80) onClose() }}
     >
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-center px-3 py-[7px] h-[43px]">
+      {/* Header — drag handle: pointerDown here initiates panel drag */}
+      <div
+        className="absolute top-0 left-0 right-0 flex items-center justify-center px-3 py-[7px] h-[43px]"
+        style={{ cursor: 'grab', touchAction: 'none' }}
+        onPointerDown={e => dragControls.start(e)}
+      >
         <div className="flex items-center gap-1">
           <span className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-black text-[14px] font-bold leading-[18px]">{feedData.count} comments</span>
           <img src={A.sort} alt="" style={{ width: 14, height: 14 }} />
