@@ -383,7 +383,7 @@ const VideoCard = memo(function VideoCard({ feed, isActive, bottomNavH }) {
       v.volume = 1.0
       v.play().catch(() => {})
       setPaused(false)
-      if (mutedRef.current) {
+      if (mutedRef.current && feed.music) {
         setShowMuteHint(true)
         const t = setTimeout(() => setShowMuteHint(false), 2000)
         return () => clearTimeout(t)
