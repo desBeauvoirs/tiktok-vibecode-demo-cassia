@@ -821,9 +821,9 @@ export default function App() {
   const isMobile  = vw <= 768
   const shellW    = isMobile ? vw : 402
 
-  // Nav heights derived from SVG aspect ratios scaled to shell width
+  // Nav heights — bottomNavH hardcoded to observed rendered height
   const topNavH    = Math.round(shellW * TOP_NAV_RATIO)
-  const bottomNavH = Math.round(shellW * BOTTOM_NAV_RATIO)
+  const bottomNavH = 62
   const topAreaH   = 24 + topNavH
 
   const openComments = (feedIdx, highlight = false) => {
