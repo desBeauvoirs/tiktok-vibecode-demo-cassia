@@ -309,7 +309,7 @@ function VideoDescription({ feed, bottomNavH }) {
   return (
     <div
       className="absolute left-3 z-10"
-      style={{ bottom: bottomNavH + 11, width: '68%' }}
+      style={{ bottom: bottomNavH + 4, width: '68%' }}
     >
       <div className="flex flex-col gap-3">
         {/* Username + date row */}
