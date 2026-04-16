@@ -212,7 +212,8 @@ function BottomNav() {
     <img
       src="/bottom-nav.svg"
       alt=""
-      className="absolute bottom-0 left-0 right-0 z-20 w-full block"
+      className="absolute left-0 right-0 z-20 w-full block"
+      style={{ bottom: 'env(safe-area-inset-bottom, 0px)' }}
       draggable={false}
     />
   )
@@ -239,7 +240,7 @@ function Sidebar({ feed, onComment, bottomNavH }) {
   return (
     <div
       className="absolute flex flex-col items-center overflow-visible z-10"
-      style={{ bottom: bottomNavH + 8, right: 12, gap: 18 }}
+      style={{ bottom: `calc(${bottomNavH + 8}px + env(safe-area-inset-bottom, 0px))`, right: 12, gap: 18 }}
     >
       {/* Creator avatar (top) with optional follow badge */}
       <div className="relative flex flex-col items-center justify-center pb-2">
@@ -261,15 +262,12 @@ function Sidebar({ feed, onComment, bottomNavH }) {
 
       {/* Like — toggleable */}
       <button aria-label={liked ? 'Unlike' : 'Like'} className="flex flex-col items-center justify-center" onClick={toggleLike}>
-        <img
-          src={A.like}
-          aria-hidden="true"
-          style={{
-            width: 36, height: 36,
-            filter: liked ? 'brightness(0) saturate(100%) invert(21%) sepia(99%) saturate(2476%) hue-rotate(326deg) brightness(104%)' : 'none',
-            transition: 'filter 0.15s',
-          }}
-        />
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true" style={{ transition: 'fill 0.15s' }}>
+          <path
+            d="M18 30.5l-1.8-1.64C9.6 22.36 5 18.28 5 13.5 5 9.42 8.13 6.5 12 6.5c2.17 0 4.26 1.01 5.63 2.61A7.25 7.25 0 0 1 24 6.5c3.87 0 7 2.92 7 7 0 4.78-4.6 8.86-11.2 15.36L18 30.5z"
+            fill={liked ? '#fe2c55' : 'white'}
+          />
+        </svg>
         <span className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-[12px] font-bold leading-3 mt-0.5"
           style={{ color: liked ? '#fe2c55' : 'white', transition: 'color 0.15s' }}>
           {fmtCount(likeCount)}
@@ -309,7 +307,7 @@ function VideoDescription({ feed, bottomNavH }) {
   return (
     <div
       className="absolute left-3 z-10"
-      style={{ bottom: bottomNavH, width: '68%' }}
+      style={{ bottom: `calc(${bottomNavH}px + env(safe-area-inset-bottom, 0px))`, width: '68%' }}
     >
       <div className="flex flex-col gap-3">
         {/* Username + date row */}
@@ -367,7 +365,7 @@ function VideoDescription({ feed, bottomNavH }) {
 }
 
 // ── VideoCard ─────────────────────────────────────────────────────────
-const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
+const VideoCard = memo(function VideoCard({ feed, isActive, bottomNavH }) {
   const videoRef = useRef(null)
   const [paused, setPaused] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -471,9 +469,9 @@ const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
         )}
       </AnimatePresence>
 
-      {/* Progress bar — 2px, bottom of video area */}
+      {/* Progress bar — sits above bottom nav */}
       {feed.video && (
-        <div className="absolute left-0 right-0" style={{ bottom: 0, height: 2, background: 'rgba(255,255,255,0.25)' }}>
+        <div className="absolute left-0 right-0" style={{ bottom: `calc(${bottomNavH}px + env(safe-area-inset-bottom, 0px))`, height: 2, background: 'rgba(255,255,255,0.25)' }}>
           <div style={{ width: `${progress * 100}%`, height: '100%', background: 'white', transition: 'width 0.25s linear' }} />
         </div>
       )}
@@ -910,7 +908,7 @@ export default function App() {
               style={{ top: i * vh, height: vh }}
             >
               {feed.type === 'video'
-                ? <VideoCard feed={feed} isActive={i === current} />
+                ? <VideoCard feed={feed} isActive={i === current} bottomNavH={bottomNavH} />
                 : <QuoteCard
                     feed={feed}
                     topAreaH={topAreaH}
