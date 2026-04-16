@@ -21,7 +21,7 @@ const A = {
   avDR:      '/assets/av-dr.png',
   avClaude:  '/assets/av-claude.png',
   // QuoteCard background
-  bgGraphic: '/assets/bg-graphic.svg',
+  bgGraphic: '/assets/bg-graphic.png',
   // Play icon
   play:      '/assets/play.svg',
   // Misc decorative
