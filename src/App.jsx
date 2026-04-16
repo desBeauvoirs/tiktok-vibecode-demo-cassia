@@ -85,7 +85,6 @@ const FEEDS = [
     verified: true, showFollow: true,
     caption: 'A new feature in the Figma MCP server it can capture any running UI state in your browser and paste those as editable Figma frames right on the canvas.',
     likes: '3,318', comments: '110', bookmarks: '878', shares: '97',
-    music: 'Original Sound - Claude',
   },
 ]
 
@@ -339,7 +338,7 @@ function VideoDescription({ feed }) {
               paddingBottom: 4,
               ...(expanded
                 ? {}
-                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxHeight: 36 }
+                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }
               ),
             }}
           >
@@ -377,6 +376,7 @@ const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
   const videoRef = useRef(null)
   const [paused, setPaused] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [showMuteHint, setShowMuteHint] = useState(false)
   // Start muted so browser allows autoplay; first tap unmutes
   const mutedRef = useRef(true)
 
@@ -388,10 +388,16 @@ const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
       v.volume = 1.0
       v.play().catch(() => {})
       setPaused(false)
+      if (mutedRef.current) {
+        setShowMuteHint(true)
+        const t = setTimeout(() => setShowMuteHint(false), 1000)
+        return () => clearTimeout(t)
+      }
     } else {
       v.pause()
       v.currentTime = 0
       setPaused(false)
+      setShowMuteHint(false)
     }
   }, [isActive])
 
@@ -412,6 +418,7 @@ const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
     if (mutedRef.current) {
       mutedRef.current = false
       v.muted = false
+      setShowMuteHint(false)
       return
     }
     if (v.paused) {
@@ -448,6 +455,26 @@ const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
           </div>
         </div>
       )}
+
+      {/* Tap to unmute hint — shown for 1s on first appearance */}
+      <AnimatePresence>
+        {showMuteHint && (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex items-center gap-[6px] rounded-full" style={{ background: 'rgba(0,0,0,0.5)', padding: '8px 16px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                <path d="M16.5 12A4.5 4.5 0 0 0 14 7.97V9.76l2.48 2.48c.01-.08.02-.16.02-.24zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06A8.99 8.99 0 0 0 17.73 18l1.98 2L21 18.73 4.27 3zM12 4 9.91 6.09 12 8.18V4z"/>
+              </svg>
+              <span className="text-white font-semibold" style={{ fontSize: 13 }}>Tap to unmute</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Progress bar — 2px, bottom of video area */}
       {feed.video && (
