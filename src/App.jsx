@@ -240,7 +240,7 @@ function Sidebar({ feed, onComment, bottomNavH }) {
   return (
     <div
       className="absolute flex flex-col items-center overflow-visible z-10"
-      style={{ bottom: `calc(${bottomNavH + 8}px + env(safe-area-inset-bottom, 0px))`, right: 12, gap: 18 }}
+      style={{ bottom: `calc(${bottomNavH + 24}px + env(safe-area-inset-bottom, 0px))`, right: 12, gap: 18 }}
     >
       {/* Creator avatar (top) with optional follow badge */}
       <div className="relative flex flex-col items-center justify-center pb-2">
@@ -307,7 +307,7 @@ function VideoDescription({ feed, bottomNavH }) {
   return (
     <div
       className="absolute left-3 z-10"
-      style={{ bottom: `calc(${bottomNavH}px + env(safe-area-inset-bottom, 0px))`, width: '68%' }}
+      style={{ bottom: `calc(${bottomNavH + 16}px + env(safe-area-inset-bottom, 0px))`, width: '68%' }}
     >
       <div className="flex flex-col gap-3">
         {/* Username + date row */}
@@ -323,42 +323,44 @@ function VideoDescription({ feed, bottomNavH }) {
             <span className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-white/50 font-bold text-[16px] leading-3">{feed.date}</span>
           </div>
         </div>
-        {/* Caption + more/less toggle */}
-        <div className="flex items-end gap-[3px]">
-          <p
-            className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] text-white/80 font-semibold text-[16px] overflow-hidden flex-1"
-            style={{
-              lineHeight: '20px',
-              ...(expanded
-                ? {}
-                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxHeight: 40 }
-              ),
-            }}
-          >
-            {feed.caption}
-          </p>
-          <button
-            className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-white/80 font-bold text-[16px] whitespace-nowrap shrink-0 leading-4"
-            style={{ lineHeight: '16px' }}
-            onClick={() => setExpanded(e => !e)}
-          >
-            {expanded ? 'less' : 'more'}
-          </button>
-        </div>
-        {/* Music row */}
-        {feed.music && (
-          <div className="flex items-center gap-[5px]" style={{ paddingBottom: 2 }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" fillOpacity="0.7" aria-hidden="true">
-              <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
-            </svg>
-            <span
-              className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] font-semibold text-white/70 whitespace-nowrap"
-              style={{ fontSize: 13 }}
+        {/* Caption + more/less toggle + music in a tighter sub-group */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-end gap-[3px]">
+            <p
+              className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] text-white/80 font-semibold text-[16px] overflow-hidden flex-1"
+              style={{
+                lineHeight: '20px',
+                ...(expanded
+                  ? {}
+                  : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxHeight: 40 }
+                ),
+              }}
             >
-              {feed.music}
-            </span>
+              {feed.caption}
+            </p>
+            <button
+              className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-white/80 font-bold text-[16px] whitespace-nowrap shrink-0 leading-4"
+              style={{ lineHeight: '16px' }}
+              onClick={() => setExpanded(e => !e)}
+            >
+              {expanded ? 'less' : 'more'}
+            </button>
           </div>
-        )}
+          {/* Music row */}
+          {feed.music && (
+            <div className="flex items-center gap-[5px]" style={{ paddingTop: 2, paddingBottom: 2 }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="white" fillOpacity="0.7" aria-hidden="true">
+                <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+              </svg>
+              <span
+                className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] font-semibold text-white/70 whitespace-nowrap"
+                style={{ fontSize: 13 }}
+              >
+                {feed.music}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -923,3 +925,4 @@ export default function App() {
     </div>
   )
 }
+
