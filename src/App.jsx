@@ -49,6 +49,7 @@ const FEEDS = [
     verified: false, showFollow: false,
     caption: "Did you know that TikTok now shows comments in your feed?",
     likes: '11.5K', comments: '193', bookmarks: '312', shares: '647',
+    music: 'Original Sound - Cassia Tang',
   },
   {
     id: 2, type: 'quote',
@@ -66,6 +67,7 @@ const FEEDS = [
     verified: false, showFollow: true,
     caption: 'This is your sign to start working on your portfolio.  #fyp #designer',
     likes: '25.2K', comments: '59', bookmarks: '3,149', shares: '2,273',
+    music: 'TikTok Viral',
   },
   {
     id: 4, type: 'quote',
@@ -83,6 +85,7 @@ const FEEDS = [
     verified: true, showFollow: true,
     caption: 'A new feature in the Figma MCP server it can capture any running UI state in your browser and paste those as editable Figma frames right on the canvas.',
     likes: '3,318', comments: '110', bookmarks: '878', shares: '97',
+    music: 'Original Sound - Claude',
   },
 ]
 
@@ -333,9 +336,10 @@ function VideoDescription({ feed }) {
             className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] text-white/80 font-semibold text-[16px] overflow-hidden flex-1"
             style={{
               lineHeight: '16px',
+              paddingBottom: 4,
               ...(expanded
                 ? {}
-                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxHeight: 32 }
+                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxHeight: 36 }
               ),
             }}
           >
@@ -349,6 +353,20 @@ function VideoDescription({ feed }) {
             {expanded ? 'less' : 'more'}
           </button>
         </div>
+        {/* Music row */}
+        {feed.music && (
+          <div className="flex items-center gap-[5px]" style={{ paddingBottom: 2 }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" fillOpacity="0.7" aria-hidden="true">
+              <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+            </svg>
+            <span
+              className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] font-semibold text-white/70 whitespace-nowrap"
+              style={{ fontSize: 13 }}
+            >
+              {feed.music}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
