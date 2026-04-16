@@ -2,15 +2,11 @@ import { useState, useRef, useEffect, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import './App.css'
 
-// Design reference: 402 × 874 (Figma phone frame)
-// CARD_H is computed at runtime from the actual scaled phone height
-const DESIGN_H = 874
-const DESIGN_CARD_H = 790     // video area height (top of bottom nav)
-const STATUS_BAR_H = 62       // space reserved for iPhone status bar
-const TOP_NAV_H = 65          // top-nav SVG height
-const BOTTOM_NAV_H = 84       // bottom-nav SVG height
-// Derived: top of usable area between nav bars (within the video card)
-const CONTENT_TOP = STATUS_BAR_H + TOP_NAV_H       // = 127
+// Status bar / Dynamic Island clearance (matches Figma design)
+const STATUS_BAR_H = 62
+// SVG intrinsic aspect ratios — used to compute real px heights at runtime
+const TOP_NAV_RATIO    = 65 / 402   // top-nav.svg is 402×65
+const BOTTOM_NAV_RATIO = 84 / 402   // bottom-nav.svg is 402×84
 
 // ── Figma assets (Feed 2 frame URLs for chrome; per-card URLs for content) ──
 const A = {
@@ -47,7 +43,7 @@ const FEEDS = [
     id: 1, type: 'video', video: '/assets/feed1.mp4',
     avatar: A.avCassia, username: 'Cassia Tang Design', date: '4-16',
     verified: false, showFollow: false,
-    caption: "Did you know that TikTok now shows comments in your feed?",
+    caption: "Did you know that TikTok now shows comment in your feed? #newfeature #tiktok",
     likes: '11.5K', comments: '193', bookmarks: '312', shares: '647',
     music: 'Original Sound - Cassia Tang',
   },
@@ -204,13 +200,10 @@ function fmtCount(n) {
 
 function TopNav() {
   return (
-    <img
-      src="/top-nav.svg"
-      alt=""
-      className="absolute left-0 z-20 w-full"
-      style={{ top: STATUS_BAR_H, height: TOP_NAV_H, display: 'block' }}
-      draggable={false}
-    />
+    <div className="fixed top-0 left-0 right-0 z-20 pointer-events-none">
+      <div style={{ height: STATUS_BAR_H }} />
+      <img src="/top-nav.svg" alt="" className="w-full block" draggable={false} />
+    </div>
   )
 }
 
@@ -219,8 +212,7 @@ function BottomNav() {
     <img
       src="/bottom-nav.svg"
       alt=""
-      className="absolute bottom-0 left-0 z-20 w-full"
-      style={{ height: BOTTOM_NAV_H, display: 'block' }}
+      className="fixed bottom-0 left-0 right-0 z-20 w-full block"
       draggable={false}
     />
   )
@@ -235,7 +227,7 @@ function parseLikeCount(str) {
 }
 
 // Right sidebar: avatar + like/comment/bookmark/share + music disc
-function Sidebar({ feed, onComment }) {
+function Sidebar({ feed, onComment, bottomNavH }) {
   const [liked, setLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(() => parseLikeCount(feed.likes))
 
@@ -246,8 +238,8 @@ function Sidebar({ feed, onComment }) {
 
   return (
     <div
-      className="absolute flex flex-col items-center overflow-visible"
-      style={{ bottom: 28, right: 12, gap: 18 }}
+      className="fixed flex flex-col items-center overflow-visible z-10"
+      style={{ bottom: bottomNavH + 28, right: 12, gap: 18 }}
     >
       {/* Creator avatar (top) with optional follow badge */}
       <div className="relative flex flex-col items-center justify-center pb-2">
@@ -310,13 +302,13 @@ function Sidebar({ feed, onComment }) {
 }
 
 // Bottom-left caption block
-function VideoDescription({ feed }) {
+function VideoDescription({ feed, bottomNavH }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
     <div
-      className="absolute bottom-[11px] left-3"
-      style={{ width: 274 }}
+      className="fixed left-3 z-10"
+      style={{ bottom: bottomNavH + 11, width: '68%' }}
     >
       <div className="flex flex-col gap-3">
         {/* Username + date row */}
@@ -486,8 +478,6 @@ const VideoCard = memo(function VideoCard({ feed, onComment, isActive }) {
         </div>
       )}
 
-      <Sidebar feed={feed} onComment={onComment} />
-      <VideoDescription feed={feed} />
     </div>
   )
 })
@@ -503,7 +493,7 @@ function QuoteCardBg() {
 }
 
 // ── QuoteCard ─────────────────────────────────────────────────────────
-function QuoteCard({ feed, onCardClick }) {
+function QuoteCard({ feed, onCardClick, topAreaH, bottomNavH }) {
   return (
     <div
       className="relative w-full h-full overflow-hidden bg-[#1e1e1e] cursor-pointer"
@@ -512,14 +502,13 @@ function QuoteCard({ feed, onCardClick }) {
       <QuoteCardBg />
 
       {/*
-        320px wrapper — centered horizontally.
-        Comment card fills it (320px).
-        From-video row is self-start, so pill left-edge = comment card left-edge.
-        From-video card is hug-content (no fixed width).
+        Content centered between top nav and bottom nav.
+        topAreaH = status bar (62) + top nav height (scales with vw).
+        bottomNavH = bottom nav height (scales with vw).
       */}
       <div
         className="absolute left-0 right-0 flex flex-col items-center justify-center"
-        style={{ top: CONTENT_TOP, bottom: 0, gap: 14 }}
+        style={{ top: topAreaH, bottom: bottomNavH, gap: 14 }}
       >
         <div className="flex flex-col" style={{ width: 320, gap: 14, transform: 'translateY(20px)' }}>
 
@@ -733,7 +722,7 @@ function CommentPanel({ onClose, feedIndex, highlightFirst }) {
 
   return (
     <motion.div
-      className="absolute bottom-0 left-0 right-0 bg-white z-30 overflow-hidden"
+      className="fixed bottom-0 left-0 right-0 bg-white z-30 overflow-hidden"
       style={{ height: 640, borderRadius: '12px 12px 0 0' }}
       initial={{ y: 640 }}
       animate={{ y: 0 }}
@@ -750,11 +739,11 @@ function CommentPanel({ onClose, feedIndex, highlightFirst }) {
           <span className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-black text-[14px] font-bold leading-[18px]">{feedData.count} comments</span>
           <img src={A.sort} alt="" style={{ width: 14, height: 14 }} />
         </div>
-        {/* Close button: left-[362px] = 12px from right edge, 28×28 hit area */}
+        {/* Close button — 12px from right edge */}
         <button
-          className="absolute flex flex-col items-start"
+          className="absolute flex items-center justify-center"
           aria-label="Close comments"
-          style={{ left: 356, top: 4, width: 40, height: 40, paddingTop: 4, paddingLeft: 4, paddingRight: 4 }}
+          style={{ right: 8, top: 4, width: 40, height: 40 }}
           onClick={onClose}
         >
           <div className="relative w-full" style={{ height: 30 }}>
@@ -789,8 +778,7 @@ function CommentPanel({ onClose, feedIndex, highlightFirst }) {
         {/* User avatar — 36×36 rounded-[99px] */}
         <div
           className="overflow-hidden shrink-0"
-          style={{ background: 'rgba(0,0,0,0.06)' }}
-          style={{ width: 36, height: 36, borderRadius: 99 }}
+          style={{ width: 36, height: 36, borderRadius: 99, background: 'rgba(0,0,0,0.06)' }}
         >
           <img src={A.avUser} alt="" className="w-full h-full object-cover" />
         </div>
@@ -820,126 +808,107 @@ export default function App() {
   const [current, setCurrent]           = useState(0)
   const [showComments, setShowComments] = useState(false)
   const [highlightFirst, setHighlightFirst] = useState(false)
-
-  // Prevent QuoteCard onClick from firing when user swipes through a quote feed
   const isDragging = useRef(false)
 
-  // Open comments on a specific feed, optionally highlighting the top comment
+  // Track real viewport dimensions — drives carousel snap and nav heights
+  const [vp, setVp] = useState({ vw: window.innerWidth, vh: window.innerHeight })
+  useEffect(() => {
+    const update = () => setVp({ vw: window.innerWidth, vh: window.innerHeight })
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+  const { vw, vh } = vp
+
+  // Nav heights: scale SVG aspect ratios to actual screen width
+  const topNavH   = Math.round(vw * TOP_NAV_RATIO)
+  const bottomNavH = Math.round(vw * BOTTOM_NAV_RATIO)
+  const topAreaH  = STATUS_BAR_H + topNavH   // total top clearance
+
   const openComments = (feedIdx, highlight = false) => {
     setCurrent(feedIdx)
     setHighlightFirst(highlight)
     setShowComments(true)
   }
 
-  // Responsive scaling: fit the 402×874 Figma canvas into the real viewport.
-  // Strategy: contain mode (min of both axes) — canvas never clips navbars.
-  // On modern iPhones the ratio is close enough to 9:19.5 that it fills edge-to-edge.
-  // canvasOffsetY centers the canvas vertically if it's shorter than the viewport.
-  const wrapperRef = useRef(null)
-  const [scale, setScale]         = useState(1)
-  const [canvasOffsetY, setCanvasOffsetY] = useState(0)
-
-  useEffect(() => {
-    const measure = () => {
-      if (!wrapperRef.current) return
-      const w = wrapperRef.current.clientWidth
-      const h = wrapperRef.current.clientHeight
-      const s = Math.min(w / 402, h / DESIGN_H)
-      setScale(s)
-      setCanvasOffsetY(Math.max(0, (h - DESIGN_H * s) / 2))
-    }
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(wrapperRef.current)
-    return () => ro.disconnect()
-  }, [])
-
   const handleDragEnd = (_, info) => {
-    if (showComments) return                         // locked while comments open
+    if (showComments) return
     const THRESHOLD = 50
     if (info.offset.y < -THRESHOLD)
-      setCurrent(c => (c + 1) % FEEDS.length)       // Feed 5 → wraps to Feed 1
+      setCurrent(c => (c + 1) % FEEDS.length)
     else if (info.offset.y > THRESHOLD && current > 0)
       setCurrent(c => c - 1)
-    // Clear isDragging after the click event has had a chance to fire and be suppressed
     setTimeout(() => { isDragging.current = false }, 50)
   }
 
+  const currentFeed = FEEDS[current]
+
   return (
-    // Full-viewport shell — safe-area padding keeps chrome clear of notch/home bar
-    <div
-      className="flex items-center justify-center w-screen bg-black overflow-hidden"
-      style={{
-        height: '100dvh',
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }}
-    >
-      {/* Wrapper: fills the padded area; canvas scales to fit inside it */}
-      <div
-        ref={wrapperRef}
-        className="relative w-full h-full overflow-hidden bg-black"
-      >
-        {/*
-          Inner canvas is always 402×874 (Figma reference).
-          scale = min(viewportW/402, viewportH/874) — contain mode.
-          canvasOffsetY centers the canvas vertically when viewport is taller.
-        */}
-        <div
-          style={{
-            width: 402,
-            height: DESIGN_H,
-            transform: `scale(${scale})`,
-            transformOrigin: '0 0',
-            marginTop: canvasOffsetY,
-          }}
+    <div className="w-screen overflow-hidden bg-black" style={{ height: '100dvh' }}>
+
+      {/* ── Fixed nav overlays ── */}
+      <TopNav />
+      <BottomNav />
+
+      {/* ── Feed-specific overlays (video feeds only) ── */}
+      {currentFeed.type === 'video' && (
+        <>
+          <Sidebar
+            key={currentFeed.id}
+            feed={currentFeed}
+            onComment={() => openComments(current)}
+            bottomNavH={bottomNavH}
+          />
+          <VideoDescription
+            key={`desc-${currentFeed.id}`}
+            feed={currentFeed}
+            bottomNavH={bottomNavH}
+          />
+        </>
+      )}
+
+      {/* ── Full-screen carousel ── */}
+      <div className="fixed inset-0 overflow-hidden">
+        <motion.div
+          style={{ height: FEEDS.length * vh, touchAction: 'none' }}
+          drag={showComments ? false : 'y'}
+          dragConstraints={{ top: -(FEEDS.length - 1) * vh, bottom: 0 }}
+          dragElastic={0.08}
+          dragMomentum={false}
+          onDragStart={() => { isDragging.current = true }}
+          onDragEnd={handleDragEnd}
+          animate={{ y: -current * vh }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
-          {/* Video window — clips carousel to 790px */}
-          <div className="absolute top-0 left-0 right-0 overflow-hidden" style={{ height: DESIGN_CARD_H }}>
-            <motion.div
-              className="absolute inset-x-0 top-0"
-              style={{ height: FEEDS.length * DESIGN_CARD_H, touchAction: 'none' }}
-              drag={showComments ? false : 'y'}
-              dragConstraints={{ top: -(FEEDS.length - 1) * DESIGN_CARD_H, bottom: 0 }}
-              dragElastic={0.08}
-              dragMomentum={false}
-              onDragStart={() => { isDragging.current = true }}
-              onDragEnd={handleDragEnd}
-              animate={{ y: -current * DESIGN_CARD_H }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          {FEEDS.map((feed, i) => (
+            <div
+              key={feed.id}
+              className="absolute left-0 right-0"
+              style={{ top: i * vh, height: vh }}
             >
-              {FEEDS.map((feed, i) => (
-                <div
-                  key={feed.id}
-                  className="absolute left-0 right-0"
-                  style={{ top: i * DESIGN_CARD_H, height: DESIGN_CARD_H }}
-                >
-                  {feed.type === 'video'
-                    ? <VideoCard feed={feed} onComment={() => openComments(i)} isActive={i === current} />
-                    : <QuoteCard feed={feed} onCardClick={() => { if (!isDragging.current) openComments(feed.targetFeedIdx, true) }} />
-                  }
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Chrome overlays */}
-          <TopNav />
-          <BottomNav />
-
-
-          {/* Comment panel */}
-          <AnimatePresence>
-            {showComments && (
-              <CommentPanel
-                onClose={() => { setShowComments(false); setHighlightFirst(false) }}
-                feedIndex={current}
-                highlightFirst={highlightFirst}
-              />
-            )}
-          </AnimatePresence>
-        </div>
+              {feed.type === 'video'
+                ? <VideoCard feed={feed} isActive={i === current} />
+                : <QuoteCard
+                    feed={feed}
+                    topAreaH={topAreaH}
+                    bottomNavH={bottomNavH}
+                    onCardClick={() => { if (!isDragging.current) openComments(feed.targetFeedIdx, true) }}
+                  />
+              }
+            </div>
+          ))}
+        </motion.div>
       </div>
+
+      {/* ── Comment panel ── */}
+      <AnimatePresence>
+        {showComments && (
+          <CommentPanel
+            onClose={() => { setShowComments(false); setHighlightFirst(false) }}
+            feedIndex={current}
+            highlightFirst={highlightFirst}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
