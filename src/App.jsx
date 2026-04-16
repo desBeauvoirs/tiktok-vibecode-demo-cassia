@@ -51,7 +51,7 @@ const FEEDS = [
     id: 2, type: 'quote',
     targetFeedIdx: 2,           // tapping navigates to Feed 3 (Design Reality)
     quoter: '@itssarahkim',
-    quote: 'As the a junior designer I need this song on 24 hr loop.',
+    quote: 'As the a junior designer I need this song on 24 hr loop.', quoteFontSize: 28,
     qLikes: '8.4K likes', qReplies: '224 replies',
     isAd: false,
     vFrom: '@design_reality', vViews: '201.8K views',
@@ -543,10 +543,10 @@ function QuoteCard({ feed, onCardClick, topAreaH, bottomNavH }) {
               )}
             </div>
 
-            {/* Row 2 — quote body: SemiBold 40/40 */}
+            {/* Row 2 — quote body */}
             <p
               className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] font-semibold text-black"
-              style={{ fontSize: 40, lineHeight: '40px' }}
+              style={{ fontSize: feed.quoteFontSize ?? 40, lineHeight: `${feed.quoteFontSize ?? 40}px` }}
             >
               {feed.quote}
             </p>
@@ -925,3 +925,4 @@ export default function App() {
     </div>
   )
 }
+
