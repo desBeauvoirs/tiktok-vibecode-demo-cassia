@@ -200,7 +200,7 @@ function fmtCount(n) {
 
 function TopNav() {
   return (
-    <div className="fixed top-0 left-0 right-0 z-20 pointer-events-none">
+    <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none">
       <div style={{ height: 24 }} />
       <img src="/top-nav.svg" alt="" className="w-full block" draggable={false} />
     </div>
@@ -212,7 +212,7 @@ function BottomNav() {
     <img
       src="/bottom-nav.svg"
       alt=""
-      className="fixed bottom-0 left-0 right-0 z-20 w-full block"
+      className="absolute bottom-0 left-0 right-0 z-20 w-full block"
       draggable={false}
     />
   )
@@ -238,7 +238,7 @@ function Sidebar({ feed, onComment, bottomNavH }) {
 
   return (
     <div
-      className="fixed flex flex-col items-center overflow-visible z-10"
+      className="absolute flex flex-col items-center overflow-visible z-10"
       style={{ bottom: bottomNavH + 28, right: 12, gap: 18 }}
     >
       {/* Creator avatar (top) with optional follow badge */}
@@ -308,7 +308,7 @@ function VideoDescription({ feed, bottomNavH }) {
 
   return (
     <div
-      className="fixed left-3 z-10"
+      className="absolute left-3 z-10"
       style={{ bottom: bottomNavH + 11, width: '68%' }}
     >
       <div className="flex flex-col gap-3">
@@ -722,7 +722,7 @@ function CommentPanel({ onClose, feedIndex, highlightFirst }) {
 
   return (
     <motion.div
-      className="fixed bottom-0 left-0 right-0 bg-white z-30 overflow-hidden"
+      className="absolute bottom-0 left-0 right-0 bg-white z-30 overflow-hidden"
       style={{ height: 640, borderRadius: '12px 12px 0 0' }}
       initial={{ y: 640 }}
       animate={{ y: 0 }}
@@ -810,7 +810,7 @@ export default function App() {
   const [highlightFirst, setHighlightFirst] = useState(false)
   const isDragging = useRef(false)
 
-  // Track real viewport dimensions — drives carousel snap and nav heights
+  // Track real viewport dimensions
   const [vp, setVp] = useState({ vw: window.innerWidth, vh: window.innerHeight })
   useEffect(() => {
     const update = () => setVp({ vw: window.innerWidth, vh: window.innerHeight })
@@ -819,10 +819,14 @@ export default function App() {
   }, [])
   const { vw, vh } = vp
 
-  // Nav heights: scale SVG aspect ratios to actual screen width
-  const topNavH   = Math.round(vw * TOP_NAV_RATIO)
-  const bottomNavH = Math.round(vw * BOTTOM_NAV_RATIO)
-  const topAreaH  = 24 + topNavH   // 24px top offset
+  // Desktop: 402px centered column. Mobile: full viewport width.
+  const isMobile  = vw <= 768
+  const shellW    = isMobile ? vw : 402
+
+  // Nav heights derived from SVG aspect ratios scaled to shell width
+  const topNavH    = Math.round(shellW * TOP_NAV_RATIO)
+  const bottomNavH = Math.round(shellW * BOTTOM_NAV_RATIO)
+  const topAreaH   = 24 + topNavH
 
   const openComments = (feedIdx, highlight = false) => {
     setCurrent(feedIdx)
@@ -843,40 +847,52 @@ export default function App() {
   const currentFeed = FEEDS[current]
 
   return (
-    <>
-      {/* ── Fixed overlays at root — no containing block interference ── */}
-      <TopNav />
-      <BottomNav />
+    // Outer shell: full viewport, black bg, centers the column on desktop
+    <div className="flex items-center justify-center w-screen bg-black" style={{ height: '100dvh' }}>
+      {/*
+        Shell column: full-width on mobile, 402px on desktop.
+        position: relative so all absolute overlays anchor here.
+        overflow: hidden clips the carousel without breaking overlay positioning.
+      */}
+      <div
+        className="relative overflow-hidden bg-black"
+        style={{ width: shellW, height: '100dvh' }}
+      >
+        {/* ── Nav overlays (absolute within shell) ── */}
+        <TopNav />
+        <BottomNav />
 
-      {currentFeed.type === 'video' && (
-        <>
-          <Sidebar
-            key={currentFeed.id}
-            feed={currentFeed}
-            onComment={() => openComments(current)}
-            bottomNavH={bottomNavH}
-          />
-          <VideoDescription
-            key={`desc-${currentFeed.id}`}
-            feed={currentFeed}
-            bottomNavH={bottomNavH}
-          />
-        </>
-      )}
-
-      <AnimatePresence>
-        {showComments && (
-          <CommentPanel
-            onClose={() => { setShowComments(false); setHighlightFirst(false) }}
-            feedIndex={current}
-            highlightFirst={highlightFirst}
-          />
+        {/* ── Feed-specific overlays ── */}
+        {currentFeed.type === 'video' && (
+          <>
+            <Sidebar
+              key={currentFeed.id}
+              feed={currentFeed}
+              onComment={() => openComments(current)}
+              bottomNavH={bottomNavH}
+            />
+            <VideoDescription
+              key={`desc-${currentFeed.id}`}
+              feed={currentFeed}
+              bottomNavH={bottomNavH}
+            />
+          </>
         )}
-      </AnimatePresence>
 
-      {/* ── Full-screen carousel ── */}
-      <div className="fixed inset-0 bg-black overflow-hidden">
+        {/* ── Comment panel ── */}
+        <AnimatePresence>
+          {showComments && (
+            <CommentPanel
+              onClose={() => { setShowComments(false); setHighlightFirst(false) }}
+              feedIndex={current}
+              highlightFirst={highlightFirst}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* ── Carousel ── */}
         <motion.div
+          className="absolute inset-x-0 top-0"
           style={{ height: FEEDS.length * vh, touchAction: 'none' }}
           drag={showComments ? false : 'y'}
           dragConstraints={{ top: -(FEEDS.length - 1) * vh, bottom: 0 }}
@@ -906,6 +922,6 @@ export default function App() {
           ))}
         </motion.div>
       </div>
-    </>
+    </div>
   )
 }
