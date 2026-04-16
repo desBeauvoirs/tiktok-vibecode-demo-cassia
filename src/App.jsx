@@ -200,10 +200,7 @@ function fmtCount(n) {
 
 function TopNav() {
   return (
-    <div className="fixed top-0 left-0 right-0 z-20 pointer-events-none">
-      <div style={{ height: STATUS_BAR_H }} />
-      <img src="/top-nav.svg" alt="" className="w-full block" draggable={false} />
-    </div>
+    <img src="/top-nav.svg" alt="" className="fixed top-0 left-0 right-0 z-20 w-full block pointer-events-none" draggable={false} />
   )
 }
 
@@ -822,7 +819,7 @@ export default function App() {
   // Nav heights: scale SVG aspect ratios to actual screen width
   const topNavH   = Math.round(vw * TOP_NAV_RATIO)
   const bottomNavH = Math.round(vw * BOTTOM_NAV_RATIO)
-  const topAreaH  = STATUS_BAR_H + topNavH   // total top clearance
+  const topAreaH  = topNavH   // top nav sits flush at top of screen
 
   const openComments = (feedIdx, highlight = false) => {
     setCurrent(feedIdx)
