@@ -510,7 +510,7 @@ function QuoteCard({ feed, onCardClick, topAreaH, bottomNavH }) {
         className="absolute left-0 right-0 flex flex-col items-center justify-center"
         style={{ top: topAreaH, bottom: bottomNavH, gap: 14 }}
       >
-        <div className="flex flex-col" style={{ width: 320, gap: 14, transform: 'translateY(20px)' }}>
+        <div className="flex flex-col" style={{ width: 320, gap: 14, transform: 'translateY(-20px)' }}>
 
           {/* ── Comment Card: w=320 (fills wrapper), hug height, p=24, r=16 ── */}
           <div
@@ -925,4 +925,3 @@ export default function App() {
     </div>
   )
 }
-
