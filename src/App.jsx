@@ -261,14 +261,15 @@ function Sidebar({ feed, onComment, bottomNavH }) {
 
       {/* Like — toggleable */}
       <button aria-label={liked ? 'Unlike' : 'Like'} className="flex flex-col items-center justify-center" onClick={toggleLike}>
-        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true" style={{ transition: 'fill 0.15s, stroke 0.15s' }}>
-          <path
-            d="M18 30.5l-1.8-1.64C9.6 22.36 5 18.28 5 13.5 5 9.42 8.13 6.5 12 6.5c2.17 0 4.26 1.01 5.63 2.61A7.25 7.25 0 0 1 24 6.5c3.87 0 7 2.92 7 7 0 4.78-4.6 8.86-11.2 15.36L18 30.5z"
-            fill={liked ? '#fe2c55' : 'none'}
-            stroke={liked ? '#fe2c55' : 'white'}
-            strokeWidth="1.5"
-          />
-        </svg>
+        <img
+          src={A.like}
+          aria-hidden="true"
+          style={{
+            width: 36, height: 36,
+            filter: liked ? 'brightness(0) saturate(100%) invert(21%) sepia(99%) saturate(2476%) hue-rotate(326deg) brightness(104%)' : 'none',
+            transition: 'filter 0.15s',
+          }}
+        />
         <span className="font-['TikTok_Sans_24pt:Bold',sans-serif] text-[12px] font-bold leading-3 mt-0.5"
           style={{ color: liked ? '#fe2c55' : 'white', transition: 'color 0.15s' }}>
           {fmtCount(likeCount)}
@@ -329,11 +330,10 @@ function VideoDescription({ feed, bottomNavH }) {
           <p
             className="font-['TikTok_Sans_24pt:SemiBold',sans-serif] text-white/80 font-semibold text-[16px] overflow-hidden flex-1"
             style={{
-              lineHeight: '16px',
-              paddingBottom: 4,
+              lineHeight: '20px',
               ...(expanded
                 ? {}
-                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }
+                : { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', maxHeight: 40 }
               ),
             }}
           >
@@ -843,13 +843,11 @@ export default function App() {
   const currentFeed = FEEDS[current]
 
   return (
-    <div className="w-screen overflow-hidden bg-black" style={{ height: '100dvh' }}>
-
-      {/* ── Fixed nav overlays ── */}
+    <>
+      {/* ── Fixed overlays at root — no containing block interference ── */}
       <TopNav />
       <BottomNav />
 
-      {/* ── Feed-specific overlays (video feeds only) ── */}
       {currentFeed.type === 'video' && (
         <>
           <Sidebar
@@ -866,8 +864,18 @@ export default function App() {
         </>
       )}
 
+      <AnimatePresence>
+        {showComments && (
+          <CommentPanel
+            onClose={() => { setShowComments(false); setHighlightFirst(false) }}
+            feedIndex={current}
+            highlightFirst={highlightFirst}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── Full-screen carousel ── */}
-      <div className="fixed inset-0 overflow-hidden">
+      <div className="fixed inset-0 bg-black overflow-hidden">
         <motion.div
           style={{ height: FEEDS.length * vh, touchAction: 'none' }}
           drag={showComments ? false : 'y'}
@@ -898,17 +906,6 @@ export default function App() {
           ))}
         </motion.div>
       </div>
-
-      {/* ── Comment panel ── */}
-      <AnimatePresence>
-        {showComments && (
-          <CommentPanel
-            onClose={() => { setShowComments(false); setHighlightFirst(false) }}
-            feedIndex={current}
-            highlightFirst={highlightFirst}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    </>
   )
 }
